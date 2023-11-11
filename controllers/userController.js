@@ -1,50 +1,80 @@
-const User = require('../models/userModel'); // Importa el modelo de usuario
+const db = require("../models");
+const User = db.user;
+const Role = db.role;
 const jwt = require('jsonwebtoken');
-//const config = require('../config/auth-config');
+const bcrypt = require("bcryptjs");
+const config = require("../config/auth-config");
 
-// Función para crear un nuevo usuario
-exports.createUser = async (req, res) => {
+
+exports.signup = async (req, res) => {
   try {
-    const { username, password, email, role } = req.body;
 
-    // Verifica si el usuario ya existe en la base de datos
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-    if (existingUser) {
-      return res.status(400).json({ message: 'El usuario ya existe' });
-    }
+    const {username, password, email} = req.body;
 
+    const hashPassword = await bcrypt.hash(password, 8);
+   
+    const token = jwt.sign({ id: username.id }, config.secret, {
+      expiresIn: "1y" 
+    });
+
+    const role = req.body.roles ? await Role.find({ name: { $in: req.body.roles } }) : await Role.findOne({ name: 'user' });
+   
     const newUser = new User({
-      username,
-      password, // Aquí debes realizar el hash de la contraseña
-      email,
-      role,
+
+      username: username.toLowerCase(),
+      email: email.toLowerCase(),
+      password: hashPassword,
+      accessToken: token,
+      roles: [role._id]
     });
 
     await newUser.save();
-    res.status(201).json({ message: 'Usuario creado exitosamente' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error al crear el usuario' });
+
+    res.status(200).send({
+     user : newUser,
+     accessToken: token
+    });
+  } catch (err) {
+    res.status(500).send({ message: err.message });
   }
 };
 
-// Función para autenticar un usuario y generar un token JWT
-exports.loginUser = async (req, res) => {
-  const { username, password } = req.body;
-
+exports.signin = async (req, res) => {
   try {
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: 'Credenciales incorrectas' });
+    const user = await User.findOne({
+      $or: [
+        { username: req.body.username },
+        { email: req.body.email }
+      ]
+    }).populate("roles", "-__v");
+
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.password,
+      user.password
+    );
+
+    if (!passwordIsValid) {
+      return res.status(401).send({
+        accessToken: null,
+        message: "El Usuario o Contraseña no son correctos."
+      });
     }
 
-    // Aquí debes verificar la contraseña con la contraseña almacenada en la base de datos
-    // Si las contraseñas coinciden, genera un token JWT y devuelve la respuesta con el token
-    // (puedes utilizar el paquete 'jsonwebtoken' para esto).
+    const token = jwt.sign({ id: user.id }, config.secret, {
+      expiresIn: "1y"
+    });
 
+    const roles = user.role.map((role) => `ROLE_${role.name.toUpperCase()}`);
+
+    res.status(200).send({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      roles: roles,
+      accessToken: token
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error en la autenticación' });
+    res.status(500).send({ message: error.message });
   }
 };
 

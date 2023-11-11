@@ -9,7 +9,7 @@ module.exports = function(app) {
       next();
     });
 
-app.post('/register', UserController.createUser);
-app.post('/login', UserController.loginUser);
+app.post('/register', UserController.signup);
+app.post('/login', UserController.signin);
 
 };
