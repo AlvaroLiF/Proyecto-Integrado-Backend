@@ -6,6 +6,9 @@
   "scripts": {
     "test": "test"
   },
+  "engines": {
+    "node": "18.12.1"
+  },  
   "author": "Álvaro Limón Flor",
   "license": "ISC",
   "dependencies": {
