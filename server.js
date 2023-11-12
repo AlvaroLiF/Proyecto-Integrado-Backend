@@ -33,6 +33,7 @@ mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@
     console.log('Conexión a la base de datos establecida.');
     await initialRoles();
     await initialCategories();
+    //mongoose.connection.close();
   })
   .catch(err => console.error('Error al conectar a la base de datos:', err));
 

@@ -19,10 +19,12 @@ const userSchema = new mongoose.Schema({
     uniqueCaseInsensitive: true,
     match: /^\S+@\S+$/
   },
-  role: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Role', // Hace referencia al modelo de roles
-  },
+  roles: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Role', // Hace referencia al modelo de roles
+    }
+  ],
   cart: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Cart', // Modelo de carrito

@@ -17,14 +17,11 @@ exports.signup = async (req, res) => {
       expiresIn: "1y" 
     });
 
-    console.log(token);
-    const role = req.body.role ? await Role.findOne({ name: req.body.role }) : await Role.findOne({ name: 'User' });
+    const role = req.body.roles ? await Role.findOne({ name: req.body.roles }) : await Role.findOne({ name: 'User' });
 
     if (!role) {
       return res.status(400).send({ message: "Error, el rol no es válido" });
     }
-
-    console.log("wfwfwfwfw");
    
     const newUser = new User({
 
@@ -32,9 +29,8 @@ exports.signup = async (req, res) => {
       email: email.toLowerCase(),
       password: hashPassword,
       accessToken: token,
-      role: [role._id]
+      roles: [role._id]
     });
-    console.log('nuevo usuario'+newUser);
 
     await newUser.save();
 
@@ -68,11 +64,11 @@ exports.signin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user.id }, config.secret, {
+    const token = jwt.sign({ id: User.id }, config.secret, {
       expiresIn: "1y"
     });
 
-    const roles = user.role.map((role) => `ROLE_${role.name.toUpperCase()}`);
+    const roles = user.roles.map((role) => `ROLE_${role.name.toUpperCase()}`);
 
     res.status(200).send({
       id: user._id,
