@@ -6,11 +6,6 @@ const db = require("./models");
 const Category = db.category;
 const Role = db.role;
 const port = process.env.PORT || 3000;
-const userRoutes = require('./routes/userRoutes')
-const productRoutes = require('./routes/productRoutes')
-const orderRoutes = require('./routes/orderRoutes')
-const categoryRoutes = require('./routes/categoryRoutes')
-const cartRoutes = require('./routes/cartRoutes')
 
 require('dotenv').config();
 
@@ -22,12 +17,12 @@ let corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/user', userRoutes)
-app.use('/products', productRoutes)
-app.use('/orders', orderRoutes)
-app.use('/categories', categoryRoutes)
-app.use('/cart', cartRoutes)
 
+require('./routes/userRoutes')(app);
+require('./routes/productRoutes')(app);
+require('./routes/orderRoutes')(app);
+require('./routes/categoryRoutes')(app);
+require('./routes/cartRoutes')(app);
 
 app.listen(port, () => {
   console.log(`El servidor está escuchando en el puerto ${port}`);
@@ -38,7 +33,6 @@ mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@
     console.log('Conexión a la base de datos establecida.');
     await initialRoles();
     await initialCategories();
-    mongoose.connection.close();
   })
   .catch(err => console.error('Error al conectar a la base de datos:', err));
 

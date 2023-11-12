@@ -5,11 +5,11 @@ module.exports = function(app) {
       res.header(
         "Access-Control-Allow-Headers",
         "x-access-token, Origin, Content-Type, Accept"
-      );
-      next();
-    });
+      )
+      next()
+    })
 
-app.post('/register', UserController.signup);
-app.post('/login', UserController.signin);
+app.post('/user/register', UserController.signup);
+app.post('/user/login', UserController.signin);
 
 };

@@ -13,11 +13,18 @@ exports.signup = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 8);
    
-    const token = jwt.sign({ id: username.id }, config.secret, {
+    const token = jwt.sign({ id: User.id }, config.secret, {
       expiresIn: "1y" 
     });
 
-    const role = req.body.roles ? await Role.find({ name: { $in: req.body.roles } }) : await Role.findOne({ name: 'user' });
+    console.log(token);
+    const role = req.body.role ? await Role.findOne({ name: req.body.role }) : await Role.findOne({ name: 'User' });
+
+    if (!role) {
+      return res.status(400).send({ message: "Error, el rol no es válido" });
+    }
+
+    console.log("wfwfwfwfw");
    
     const newUser = new User({
 
@@ -25,13 +32,14 @@ exports.signup = async (req, res) => {
       email: email.toLowerCase(),
       password: hashPassword,
       accessToken: token,
-      roles: [role._id]
+      role: [role._id]
     });
+    console.log('nuevo usuario'+newUser);
 
     await newUser.save();
 
     res.status(200).send({
-     user : newUser,
+     username : newUser,
      accessToken: token
     });
   } catch (err) {
