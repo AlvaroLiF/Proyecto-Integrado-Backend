@@ -1,6 +1,7 @@
 const db = require("../models");
 const User = db.user;
 const Role = db.role;
+const Cart = db.cart;
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const config = require("../config/auth-config");
@@ -51,6 +52,15 @@ exports.signin = async (req, res) => {
         { email: req.body.email }
       ]
     }).populate("roles", "-__v");
+
+    if (!user.cart) {
+      // Si no tiene un carrito, crear uno nuevo
+      const newCart = new Cart({ user: user._id });
+      await newCart.save();
+
+      // Asociar el carrito al usuario
+      await User.findByIdAndUpdate(user._id, { cart: newCart._id });
+    }
 
     const passwordIsValid = bcrypt.compareSync(
       req.body.password,
