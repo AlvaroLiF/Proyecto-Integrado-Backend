@@ -1,7 +1,7 @@
 // middleware/auth.js
 
 const jwt = require('jsonwebtoken');
-const config = require('../config'); // Configuración que contiene la clave secreta del JWT
+const config = require('../config/auth-config'); // Configuración que contiene la clave secreta del JWT
 
 function authenticateUser(req, res, next) {
   // Obtiene el token de autorización de la solicitud

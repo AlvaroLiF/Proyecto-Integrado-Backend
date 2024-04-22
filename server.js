@@ -28,7 +28,7 @@ app.listen(port, () => {
   console.log(`El servidor está escuchando en el puerto ${port}`);
 });
 
-mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@componentx.dx76qu1.mongodb.net/?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@componentx.kadp6rr.mongodb.net/?retryWrites=true&w=majority&appName=Componentx')
   .then(async () => {
     console.log('Conexión a la base de datos establecida.');
     await initialRoles();

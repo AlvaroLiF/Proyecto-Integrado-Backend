@@ -14,7 +14,7 @@ exports.signup = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, 8);
    
-    const token = jwt.sign({ id: User.id }, config.secret, {
+    const token = jwt.sign({ id: User.id }, config.secretKey, {
       expiresIn: "1y" 
     });
 
@@ -26,8 +26,8 @@ exports.signup = async (req, res) => {
    
     const newUser = new User({
 
-      username: username.toLowerCase(),
-      email: email.toLowerCase(),
+      username: username,
+      email: email,
       password: hashPassword,
       accessToken: token,
       roles: [role._id]
@@ -74,7 +74,7 @@ exports.signin = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: User.id }, config.secret, {
+    const token = jwt.sign({ id: User.id }, config.secretKey, {
       expiresIn: "1y"
     });
 
@@ -91,6 +91,19 @@ exports.signin = async (req, res) => {
     res.status(500).send({ message: error.message });
   }
 };
+
+exports.getUsername = async (req, res) => {
+  try {
+    // El nombre de usuario se puede obtener desde los datos del usuario almacenados en la sesión
+    const username = req.user.username;
+    console.log(username);
+    res.status(200).json({ username: username });
+  } catch (error) {
+    console.error('Error al obtener el nombre de usuario:', error);
+    res.status(500).json({ message: 'Error al obtener el nombre de usuario' });
+  }
+};
+
 
 // Otras funciones para obtener información de usuario, actualizar datos, etc.
 

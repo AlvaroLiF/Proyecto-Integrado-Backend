@@ -1,5 +1,11 @@
 const mongoose = require('mongoose');
 
+const specificationSchema = new mongoose.Schema({
+  // Define las claves y valores de las especificaciones
+}, {
+  _id: false // Indica a Mongoose que no genere un _id para cada especificación
+});
+
 const productSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -19,7 +25,7 @@ const productSchema = new mongoose.Schema({
     type: [String],
   },
   specifications: {
-    type: [String],
+    type: specificationSchema,
   },
   photos: {
     type: [String],

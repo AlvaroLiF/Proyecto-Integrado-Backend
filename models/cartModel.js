@@ -9,6 +9,9 @@ const cartItemSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+},
+{
+  timestamps: true,
 });
 
 const cartSchema = new mongoose.Schema({
@@ -21,6 +24,9 @@ const cartSchema = new mongoose.Schema({
   totalPrice: {
     type: Number,
   },
+},
+{
+  timestamps: true,
 });
 
 const Cart = mongoose.model('Cart', cartSchema);

@@ -1,3 +1,3 @@
 module.exports = {
-    secret: "Componentx-secret"
+    secretKey: "Componentx-secret"
   };
