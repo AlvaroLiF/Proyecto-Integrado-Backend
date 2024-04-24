@@ -53,14 +53,7 @@ exports.signin = async (req, res) => {
       ]
     }).populate("roles", "-__v");
 
-    if (!user.cart) {
-      // Si no tiene un carrito, crear uno nuevo
-      const newCart = new Cart({ user: user._id });
-      await newCart.save();
-
-      // Asociar el carrito al usuario
-      await User.findByIdAndUpdate(user._id, { cart: newCart._id });
-    }
+    
 
     const passwordIsValid = bcrypt.compareSync(
       req.body.password,
@@ -72,6 +65,21 @@ exports.signin = async (req, res) => {
         accessToken: null,
         message: "El Usuario o Contraseña no son correctos."
       });
+    }
+
+    if (!user.cart) {
+      // Si no tiene un carrito, crear uno nuevo
+      const newCart = new Cart({
+        user: user._id, // Asigna el usuario al carrito
+        items: [], // Inicialmente, el carrito estará vacío
+        totalPrice: 0, // Inicialmente, el precio total es cero
+      });
+
+      await newCart.save();
+      
+      // Asociar el carrito al usuario
+      user.cart = newCart._id;
+      await user.save();
     }
 
     const token = jwt.sign({ id: User.id }, config.secretKey, {

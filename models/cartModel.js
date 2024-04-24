@@ -31,4 +31,6 @@ const cartSchema = new mongoose.Schema({
 
 const Cart = mongoose.model('Cart', cartSchema);
 
-module.exports = Cart;
+const CartItem = mongoose.model('CartItem', cartItemSchema);
+
+module.exports = { Cart, CartItem};
