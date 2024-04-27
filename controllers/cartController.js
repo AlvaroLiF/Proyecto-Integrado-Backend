@@ -24,16 +24,11 @@ exports.addToCart = async (req, res) => {
     const productId = req.body.productId; // ID del producto a agregar
     const quantity = req.body.quantity; // Cantidad del producto a agregar
 
-    console.log(productId);
-    console.log(quantity);
-
     // Busca el carrito del usuario
     const cart = await Cart.findOne({ user: req.body.userId });
     if (!cart) {
       return res.status(404).send({ message: 'Carrito no encontrado' });
     }
-
-    console.log(cart);
 
     if (!productId || !quantity) {
       return res.status(400).json({ message: 'Se requiere productId y quantity' });
@@ -45,34 +40,34 @@ exports.addToCart = async (req, res) => {
       return res.status(404).send({ message: 'Producto no encontrado' });
     }
 
-    console.log(product);
+    // Buscar si el producto ya está en el carrito
+    const existingItemIndex = cart.items.findIndex(item => item.product._id.toString() === productId);
+    if (existingItemIndex !== -1) {
+      // Si el producto ya está en el carrito, actualiza la cantidad
+      cart.items[existingItemIndex].quantity += quantity;
+      console.log(quantity);
+    } else {
+      // Si el producto no está en el carrito, crea un nuevo elemento del carrito
+      const newItem = new CartItem({
+        product: product,
+        quantity: quantity,
+      });
+      cart.items.push(newItem);
+    }
 
-    // Crea un nuevo elemento del carrito
-    const newItem = new CartItem({
-      product: product,
-      quantity: quantity,
-    });
-
-    console.log(newItem);
-    
-    // Agrega el elemento al carrito
-    cart.items.push(newItem);
-
-    
-
-    // Actualiza el precio total
-    cart.totalPrice += newItem.quantity * product.price || 0; // Inicializar a 0 si totalPrice no es un número
-
+    // Actualiza el precio total con redondeo
+    cart.totalPrice = Math.round((cart.totalPrice + (quantity * product.price)) * 100) / 100;
     console.log(cart.totalPrice);
 
     await cart.save();
-    
+
     return res.status(201).json(cart);
   } catch (error) {
     console.error('Error al agregar producto al carrito:', error);
     return res.status(500).send({ message: error.message || 'Error al agregar producto al carrito' });
   }
 };
+
 
 // Obtener el carrito de un usuario
 exports.getCart = (req, res) => {
@@ -119,7 +114,7 @@ exports.removeFromCart = async (req, res) => {
 
     // Remueve el elemento del carrito y ajusta el precio total
     const removedItem = cart.items.splice(itemIndex, 1)[0];
-    cart.totalPrice -= removedItem.quantity * product.price;
+    cart.totalPrice = Math.round((cart.totalPrice - (removedItem.quantity * product.price)) * 100) / 100;
 
     // Guarda el carrito actualizado en la base de datos
     await cart.save();

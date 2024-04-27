@@ -1,7 +1,7 @@
 const db = require("../models");
 const User = db.user;
 const Role = db.role;
-const Cart = db.cart;
+const { Cart} = require('../models/cartModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const config = require("../config/auth-config");
