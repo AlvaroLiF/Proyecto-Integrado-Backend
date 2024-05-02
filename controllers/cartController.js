@@ -23,9 +23,10 @@ exports.addToCart = async (req, res) => {
   try {
     const productId = req.body.productId; // ID del producto a agregar
     const quantity = req.body.quantity; // Cantidad del producto a agregar
+    const userId = req.body.userId; // ID del usuario
 
     // Busca el carrito del usuario
-    const cart = await Cart.findOne({ user: req.body.userId });
+    const cart = await Cart.findOne({ user: userId });
     if (!cart) {
       return res.status(404).send({ message: 'Carrito no encontrado' });
     }
@@ -49,9 +50,14 @@ exports.addToCart = async (req, res) => {
     } else {
       // Si el producto no está en el carrito, crea un nuevo elemento del carrito
       const newItem = new CartItem({
-        product: product,
-        quantity: quantity,
+        cart: cart._id,
+        product: productId,
+        quantity: quantity
       });
+
+      await newItem.save();
+  
+      // Agregar el nuevo cartItem al carrito
       cart.items.push(newItem);
     }
 
@@ -105,6 +111,9 @@ exports.removeFromCart = async (req, res) => {
     if (itemIndex === -1) {
       return res.status(404).send({ message: 'Elemento no encontrado en el carrito' });
     }
+
+    const removedItemId = cart.items[itemIndex]._id;
+    await CartItem.findByIdAndDelete(removedItemId);
 
     // Encuentra el producto correspondiente en la base de datos
     const product = await Product.findById(productId);

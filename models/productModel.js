@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
 const specificationSchema = new mongoose.Schema({
+  key: String,
+  values: [String],
   // Define las claves y valores de las especificaciones
 }, {
   _id: false // Indica a Mongoose que no genere un _id para cada especificación
@@ -25,7 +27,8 @@ const productSchema = new mongoose.Schema({
     type: [String],
   },
   specifications: {
-    type: specificationSchema,
+    type: Object,
+    default: {}
   },
   photos: {
     type: [String],

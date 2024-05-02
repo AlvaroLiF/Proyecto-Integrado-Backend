@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
+  order: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Order', // Modelo de productos
+    required: true,
+  },
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product', // Modelo de productos
@@ -22,6 +27,7 @@ const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // Modelo de usuarios
+    required: true,
   },
   orderNumber: {
     type: String,
@@ -76,5 +82,6 @@ const orderSchema = new mongoose.Schema({
 });
 
 const Order = mongoose.model('Order', orderSchema);
+const OrderItem = mongoose.model('OrderItem', orderItemSchema);
 
-module.exports = Order;
+module.exports = { Order, OrderItem};
