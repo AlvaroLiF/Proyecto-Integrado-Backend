@@ -112,6 +112,16 @@ exports.getUsername = async (req, res) => {
   }
 };
 
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener los usuarios' });
+  }
+};
+
 
 // Otras funciones para obtener información de usuario, actualizar datos, etc.
 

@@ -13,5 +13,6 @@ module.exports = function(app) {
 app.post('/user/register', UserController.signup);
 app.post('/user/login', UserController.signin);
 app.get('/user/username', authenticateUser, UserController.getUsername);
+app.get('/users', UserController.getUsers);
 
 };
