@@ -1,32 +1,9 @@
 const mongoose = require('mongoose');
 
-const orderItemSchema = new mongoose.Schema({
-  order: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order', // Modelo de productos
-    required: true,
-  },
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product', // Modelo de productos
-  },
-  quantity: {
-    type: Number,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-},
-{
-  timestamps: true,
-});
-
 const orderSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Modelo de usuarios
+    ref: 'User',
     required: true,
   },
   orderNumber: {
@@ -38,7 +15,28 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  items: [orderItemSchema],
+  items: [{
+    product: {
+      name: {
+        type: String,
+        required: [true, 'Por favor, escriba un nombre para el producto'],
+        uniqueCaseInsensitive: true,
+        trim: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+      photos: {
+        type: [String],
+      },
+    },
+    quantity: {
+      type: Number,
+      required: true,
+    },
+
+  }],
   totalPrice: {
     type: Number,
     required: true,
@@ -48,40 +46,19 @@ const orderSchema = new mongoose.Schema({
     enum: ['pendiente', 'en_proceso', 'enviado', 'entregado'],
     default: 'pendiente',
   },
-  shippingAddress: {
-    addressLine1: {
-      type: String,
-      required: true, // Campo obligatorio
-    },
-    addressLine2: {
-      type: String,
-      required: false, // Campo opcional
-    },
-    city: {
-      type: String,
-      required: true, // Campo obligatorio
-    },
-    state: {
-      type: String,
-      required: true, // Campo obligatorio
-    },
-    postalCode: {
-      type: String,
-      required: true, // Campo obligatorio
-    },
-    country: {
-      type: String,
-      required: true, // Campo obligatorio
-    },
-
+  paymentMethod: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PaymentMethod'
   },
-
+  shippingAddress: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ShippingAddress'
+  }
 },
-{
-  timestamps: true,
-});
+  {
+    timestamps: true,
+  });
 
 const Order = mongoose.model('Order', orderSchema);
-const OrderItem = mongoose.model('OrderItem', orderItemSchema);
 
-module.exports = { Order, OrderItem};
+module.exports = Order;

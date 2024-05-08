@@ -1,4 +1,7 @@
 const OrderController = require('../controllers/orderController');
+const authenticateUser = require('../middlewares/auth');
+const shippingController = require('../controllers/shippingController');
+
 
 module.exports = function(app) {
     app.use(function(req, res, next) {
@@ -10,7 +13,8 @@ module.exports = function(app) {
     });
 
     app.get('/orders', OrderController.getOrders);
-    app.post('/orders/place', OrderController.createOrder);
+    app.post('/newOrder', OrderController.createOrder);
+    app.post('/newShipping', shippingController.createShippingAddress);
 
 //app.get('/orders', authenticateUser, OrderController.getOrderHistory);
 //app.post('/orders/place', authenticateUser, OrderController.placeOrder);
