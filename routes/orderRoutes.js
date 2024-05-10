@@ -1,6 +1,8 @@
 const OrderController = require('../controllers/orderController');
 const authenticateUser = require('../middlewares/auth');
 const shippingController = require('../controllers/shippingController');
+const paymentController = require('../controllers/paymentController');
+
 
 
 module.exports = function(app) {
@@ -13,8 +15,11 @@ module.exports = function(app) {
     });
 
     app.get('/orders', OrderController.getOrders);
+    app.get('/:orderId', OrderController.getOrderById);
     app.post('/newOrder', OrderController.createOrder);
     app.post('/newShipping', shippingController.createShippingAddress);
+    app.post('/newPayment', paymentController.createPaymentMethod);
+
 
 //app.get('/orders', authenticateUser, OrderController.getOrderHistory);
 //app.post('/orders/place', authenticateUser, OrderController.placeOrder);

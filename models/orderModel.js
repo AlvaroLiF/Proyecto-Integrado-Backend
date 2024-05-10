@@ -46,14 +46,15 @@ const orderSchema = new mongoose.Schema({
     enum: ['pendiente', 'en_proceso', 'enviado', 'entregado'],
     default: 'pendiente',
   },
+  shippingAddress: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ShippingAddress'
+  },
   paymentMethod: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PaymentMethod'
   },
-  shippingAddress: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'ShippingAddress'
-  }
+
 },
   {
     timestamps: true,

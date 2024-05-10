@@ -36,6 +36,10 @@ exports.createShippingAddress = async (req, res) => {
     // Guardar la nueva dirección de envío en la base de datos
     const savedShippingAddress = await newShippingAddress.save();
 
+    // Actualizar el pedido para agregar la nueva dirección de envío
+    existingOrder.shippingAddress = savedShippingAddress._id;
+    await existingOrder.save();
+
     // Responder con la dirección de envío creada
     res.status(201).json(savedShippingAddress);
   } catch (error) {

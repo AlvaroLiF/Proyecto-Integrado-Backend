@@ -12,6 +12,8 @@ exports.createOrder = async (req, res) => {
       items: cart.items, // Utiliza los elementos del carrito como elementos del pedido
       totalPrice: cart.totalPrice, // Utiliza el precio total del carrito para el pedido
       status: 'pendiente',
+      shippingAddress:null,
+      paymentMethod:null,
     });
 
     // Guardar el nuevo pedido en la base de datos
@@ -37,6 +39,27 @@ exports.getOrders = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener los pedidos' });
+  }
+};
+
+exports.getOrderById = async (req, res) => {
+  try {
+    const orderId = req.params.orderId; // Obtener el ID del pedido de los parámetros de la solicitud
+
+    // Buscar el pedido por su ID en la base de datos
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      // Si no se encuentra el pedido, responder con un mensaje de error
+      return res.status(404).json({ message: 'Pedido no encontrado' });
+    }
+
+    // Responder con el pedido encontrado
+    res.status(200).json(order);
+  } catch (error) {
+    // Manejar cualquier error y responder con un mensaje de error
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener el pedido' });
   }
 };
 
