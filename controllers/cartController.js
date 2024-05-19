@@ -134,3 +134,31 @@ exports.removeFromCart = async (req, res) => {
     return res.status(500).send({ message: error.message || 'Error al eliminar producto del carrito' });
   }
 };
+
+// Método para vaciar el carrito
+exports.clearCart = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Buscar el carrito del usuario por su ID
+    const cart = await Cart.findOne({ user: userId });
+
+    // Si no se encuentra el carrito, enviar una respuesta de error
+    if (!cart) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+
+    // Vaciar el carrito eliminando todos los productos
+    cart.items = [];
+    cart.totalPrice = 0;
+
+    // Guardar los cambios en el carrito
+    await cart.save();
+
+    // Enviar una respuesta de éxito
+    res.status(200).json({ message: 'Carrito vaciado exitosamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al vaciar el carrito' });
+  }
+};

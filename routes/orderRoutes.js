@@ -15,12 +15,12 @@ module.exports = function(app) {
     });
 
     app.get('/orders', OrderController.getOrders);
-    app.get('/:orderId', OrderController.getOrderById);
+    app.get('/orders/:orderId', OrderController.getOrderById);
     app.post('/newOrder', OrderController.createOrder);
+    app.delete('/orders/:orderId', OrderController.deleteOrderById);
     app.post('/newShipping', shippingController.createShippingAddress);
     app.post('/newPayment', paymentController.createPaymentMethod);
-
-
+    
 //app.get('/orders', authenticateUser, OrderController.getOrderHistory);
 //app.post('/orders/place', authenticateUser, OrderController.placeOrder);
 

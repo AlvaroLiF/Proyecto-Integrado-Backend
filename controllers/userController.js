@@ -114,8 +114,10 @@ exports.getUsername = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().populate('roles', 'name'); // Poblamos los roles con solo el campo name
+    console.log(users);
     res.status(200).json(users);
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });

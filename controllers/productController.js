@@ -81,8 +81,40 @@ exports.searchProducts = async (req, res) => {
   }
 };
 
-// Otras funciones para actualizar, eliminar productos, obtener un producto específico, etc.
+exports.deleteProduct = async (req, res) => {
+  try {
+    const productId = req.params.productId;
 
-// ...
+    // Buscar y eliminar el producto
+    const deletedProduct = await Product.findByIdAndDelete(productId);
+
+    if (!deletedProduct) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Producto eliminado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar el producto', error: error.message });
+  }
+};
+
+exports.updateProduct = async (req, res) => {
+  try {
+    const productId = req.params.productId;
+    const updates = req.body;
+
+    // Buscar y actualizar el producto
+    const updatedProduct = await Product.findByIdAndUpdate(productId, updates, { new: true });
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Producto no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Producto actualizado exitosamente', product: updatedProduct });
+  } catch (error) {
+    console.error('Error al actualizar el producto:', error);
+    res.status(500).json({ message: 'Error al actualizar el producto', error: error.message });
+  }
+};
 
 module.exports = exports;

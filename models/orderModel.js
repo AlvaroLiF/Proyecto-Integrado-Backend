@@ -17,6 +17,11 @@ const orderSchema = new mongoose.Schema({
   },
   items: [{
     product: {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product', // Nombre del modelo de productos
+        required: true
+      },
       name: {
         type: String,
         required: [true, 'Por favor, escriba un nombre para el producto'],

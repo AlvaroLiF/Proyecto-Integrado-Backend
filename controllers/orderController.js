@@ -1,4 +1,7 @@
 const Order = require('../models/orderModel'); // Importa el modelo de pedido
+const moment = require('moment'); // Importar la librería moment.js para trabajar con fechas
+const User = require('../models/userModel');
+
 
 // Función para crear un nuevo pedido
 exports.createOrder = async (req, res) => {
@@ -18,6 +21,9 @@ exports.createOrder = async (req, res) => {
 
     // Guardar el nuevo pedido en la base de datos
     await newOrder.save();
+
+    // Actualizar el usuario para agregar el nuevo pedido a su lista de pedidos
+    await User.findByIdAndUpdate(userId, { $push: { orders: newOrder._id } });
 
     res.status(201).json(newOrder);
   } catch (error) {
@@ -59,9 +65,54 @@ exports.getOrderById = async (req, res) => {
   } catch (error) {
     // Manejar cualquier error y responder con un mensaje de error
     console.error(error);
-    res.status(500).json({ message: 'Error al obtener el pedido' });
+    res.status(500).json({ message: 'Error al obtener el pedidos' });
   }
 };
+
+exports.deleteOrderById = async (req, res) => {
+  try {
+    const orderId = req.params.orderId; // Obtener el ID del pedido de los parámetros de la solicitud
+
+    // Eliminar el pedido por su ID en la base de datos
+    const result = await Order.findByIdAndDelete(orderId);
+
+    if (!result) {
+      // Si no se encuentra el pedido, responder con un mensaje de error
+      return res.status(404).json({ message: 'Pedido no encontrado' });
+    }
+
+    // Responder con un mensaje de éxito
+    res.status(200).json({ message: 'Pedido eliminado exitosamente' });
+  } catch (error) {
+    // Manejar cualquier error y responder con un mensaje de error
+    console.error(error);
+    res.status(500).json({ message: 'Error al eliminar el pedido' });
+  }
+};
+
+// Función para eliminar pedidos incompletos de la base de datos
+async function deleteIncompleteOrders() {
+  try {
+    // Calcular la fecha límite para la completitud del pedido (por ejemplo, 2 minutos atrás)
+    const deadline = moment().subtract(60, 'minutes').toDate();
+
+    // Buscar pedidos con shippingAddress o paymentMethod nulos y que hayan sido creados hace más de 2 minutos
+    const incompleteOrders = await Order.find({
+      $or: [{ shippingAddress: null }, { paymentMethod: null }],
+      createdAt: { $lt: deadline } // createdAt es el campo que indica la fecha de creación del pedido
+    });
+
+    // Eliminar los pedidos encontrados
+    await Order.deleteMany({ _id: { $in: incompleteOrders.map(order => order._id) } });
+    console.log('Pedidos incompletos eliminados con éxito.');
+  } catch (error) {
+    console.error('Error al eliminar pedidos incompletos:', error);
+  }
+}
+
+// Ejecutar la función deleteIncompleteOrders periódicamente (por ejemplo, cada día)
+setInterval(deleteIncompleteOrders, 60 * 60 * 1000); // Ejecutar cada hora
+
 
 // Otras funciones para actualizar, eliminar pedidos, obtener un pedido específico, etc.
 

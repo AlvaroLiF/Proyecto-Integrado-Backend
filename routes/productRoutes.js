@@ -14,7 +14,7 @@ app.get('/featured', ProductController.getFeaturedProducts);
 app.get('/products/:productId', ProductController.getProductDetails);
 app.get('/search', ProductController.searchProducts);
 app.post('/product/add', ProductController.createProduct);
-//app.put('/products/:productId', ProductController.updateProduct);
-//app.delete('/products/:productId', ProductController.deleteProduct);
+app.put('/products/:productId', ProductController.updateProduct);
+app.delete('/products/:productId', ProductController.deleteProduct);
 
 };

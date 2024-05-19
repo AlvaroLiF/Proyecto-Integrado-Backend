@@ -13,5 +13,6 @@ app.post('/cart/create', cartController.createCart); // Crear un nuevo carrito
 app.post('/cart/add', cartController.addToCart); // Agregar un elemento al carrito
 app.get('/cart/:userId', cartController.getCart); // Obtener el carrito de un usuario
 app.delete('/cart/remove/:userId/:productId', cartController.removeFromCart); // Eliminar un elemento del carrito
+app.delete('/cart/remove/:userId', cartController.clearCart); // Vaciar el carrito
 
 };
