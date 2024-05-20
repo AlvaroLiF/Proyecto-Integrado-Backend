@@ -1,29 +1,22 @@
-// middleware/auth.js
-
 const jwt = require('jsonwebtoken');
 const config = require('../config/auth-config'); // Configuración que contiene la clave secreta del JWT
+const User = require('../models/userModel');
 
-function authenticateUser(req, res, next) {
-  // Obtiene el token de autorización de la solicitud
-  const token = req.header('Authorization');
+exports.verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
 
-  // Verifica si se proporcionó un token
   if (!token) {
-    return res.status(401).json({ message: 'Acceso denegado. Token no proporcionado.' });
+    return res.status(403).send({ message: 'No token provided.' });
   }
 
-  try {
-    // Verifica y decodifica el token JWT
-    const decoded = jwt.verify(token, config.secretKey);
+  jwt.verify(token, config.secretKey, async (err, decoded) => {
+    if (err) {
+      return res.status(500).send({ message: 'Failed to authenticate token.' });
+    }
 
-    // Agrega el usuario autenticado a la solicitud para su uso posterior
-    req.user = decoded.user;
-
-    // Continúa con la siguiente función de middleware
+    req.userId = decoded.id;
+    req.user = await User.findById(decoded.id).populate('roles');
     next();
-  } catch (error) {
-    res.status(401).json({ message: 'Token no válido.' });
-  }
-}
+  });
+};
 
-module.exports = authenticateUser;

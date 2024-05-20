@@ -90,31 +90,52 @@ exports.deleteOrderById = async (req, res) => {
   }
 };
 
+exports.getOrdersByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const orders = await Order.find({ user: userId }).populate('user', 'username email');
+
+    if (!orders) {
+      return res.status(404).json({ message: 'Pedidos no encontrados' });
+    }
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener los pedidos' });
+  }
+};
+
 // Función para eliminar pedidos incompletos de la base de datos
 async function deleteIncompleteOrders() {
   try {
-    // Calcular la fecha límite para la completitud del pedido (por ejemplo, 2 minutos atrás)
+    // Calcular la fecha límite para la completitud del pedido (por ejemplo, 60 minutos atrás)
     const deadline = moment().subtract(60, 'minutes').toDate();
 
-    // Buscar pedidos con shippingAddress o paymentMethod nulos y que hayan sido creados hace más de 2 minutos
+    // Buscar pedidos con shippingAddress o paymentMethod nulos y que hayan sido creados hace más de 60 minutos
     const incompleteOrders = await Order.find({
       $or: [{ shippingAddress: null }, { paymentMethod: null }],
       createdAt: { $lt: deadline } // createdAt es el campo que indica la fecha de creación del pedido
     });
 
+    const orderIds = incompleteOrders.map(order => order._id);
+
     // Eliminar los pedidos encontrados
-    await Order.deleteMany({ _id: { $in: incompleteOrders.map(order => order._id) } });
+    await Order.deleteMany({ _id: { $in: orderIds } });
+
+    // Eliminar las referencias a los pedidos eliminados en los documentos de los usuarios
+    await User.updateMany(
+      { orders: { $in: orderIds } },
+      { $pull: { orders: { $in: orderIds } } }
+    );
+
     console.log('Pedidos incompletos eliminados con éxito.');
   } catch (error) {
     console.error('Error al eliminar pedidos incompletos:', error);
   }
 }
 
-// Ejecutar la función deleteIncompleteOrders periódicamente (por ejemplo, cada día)
 setInterval(deleteIncompleteOrders, 60 * 60 * 1000); // Ejecutar cada hora
-
-
-// Otras funciones para actualizar, eliminar pedidos, obtener un pedido específico, etc.
 
 // ...
 

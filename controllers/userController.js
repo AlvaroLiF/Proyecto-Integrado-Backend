@@ -115,12 +115,83 @@ exports.getUsername = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().populate('roles', 'name'); // Poblamos los roles con solo el campo name
-    console.log(users);
     res.status(200).json(users);
     
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });
+  }
+};
+
+exports.addAdminRole = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const adminRole = await Role.findOne({ name: 'Admin' });
+
+    if (!adminRole) {
+      return res.status(404).json({ message: 'Role "admin" not found' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.roles.includes(adminRole._id)) {
+      return res.status(400).json({ message: 'User already has the "admin" role' });
+    }
+
+    user.roles.push(adminRole._id);
+    await user.save();
+
+    res.status(200).json({ message: 'Role "admin" added successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error adding admin role' });
+  }
+};
+
+exports.removeAdminRole = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const adminRole = await Role.findOne({ name: 'Admin' });
+
+    if (!adminRole) {
+      return res.status(404).json({ message: 'Role "admin" not found' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const roleIndex = user.roles.indexOf(adminRole._id);
+    if (roleIndex > -1) {
+      user.roles.splice(roleIndex, 1);
+      await user.save();
+    }
+
+    res.status(200).json({ message: 'Role "admin" removed successfully', user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error removing admin role' });
+  }
+};
+
+exports.deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Buscar y eliminar el producto
+    const deletedUser = await User.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json({ message: 'Usuario eliminado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al eliminar el usuario', error: error.message });
   }
 };
 

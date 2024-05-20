@@ -1,7 +1,7 @@
 const OrderController = require('../controllers/orderController');
-const authenticateUser = require('../middlewares/auth');
 const shippingController = require('../controllers/shippingController');
 const paymentController = require('../controllers/paymentController');
+const auth = require('../middlewares/auth');
 
 
 
@@ -20,6 +20,7 @@ module.exports = function(app) {
     app.delete('/orders/:orderId', OrderController.deleteOrderById);
     app.post('/newShipping', shippingController.createShippingAddress);
     app.post('/newPayment', paymentController.createPaymentMethod);
+    app.get('/user/:userId', auth.verifyToken, OrderController.getOrdersByUserId);
     
 //app.get('/orders', authenticateUser, OrderController.getOrderHistory);
 //app.post('/orders/place', authenticateUser, OrderController.placeOrder);
