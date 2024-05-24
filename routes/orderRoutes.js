@@ -17,7 +17,7 @@ module.exports = function(app) {
     app.get('/orders', OrderController.getOrders);
     app.get('/orders/:orderId', OrderController.getOrderById);
     app.post('/newOrder', OrderController.createOrder);
-    app.delete('/orders/:orderId', OrderController.deleteOrderById);
+    app.delete('/user/orders/:orderId', auth.verifyToken, OrderController.deleteOrderById);
     app.post('/newShipping', shippingController.createShippingAddress);
     app.post('/newPayment', paymentController.createPaymentMethod);
     app.get('/user/:userId', auth.verifyToken, OrderController.getOrdersByUserId);

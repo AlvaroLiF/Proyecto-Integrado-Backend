@@ -34,7 +34,7 @@ exports.createOrder = async (req, res) => {
 
 function generateOrderNumber() {
   // Lógica para generar un número de pedido único
-  return Math.floor(Math.random() * 1000000).toString(); // Por ejemplo, genera un número aleatorio de 6 dígitos
+  return Math.floor(Math.random() * 1000000000).toString(); // Por ejemplo, genera un número aleatorio de 6 dígitos
 }
 
 // Función para obtener todos los pedidos
@@ -73,13 +73,21 @@ exports.deleteOrderById = async (req, res) => {
   try {
     const orderId = req.params.orderId; // Obtener el ID del pedido de los parámetros de la solicitud
 
-    // Eliminar el pedido por su ID en la base de datos
-    const result = await Order.findByIdAndDelete(orderId);
+    // Buscar el pedido por su ID para obtener el ID del usuario asociado
+    const order = await Order.findById(orderId);
 
-    if (!result) {
+    if (!order) {
       // Si no se encuentra el pedido, responder con un mensaje de error
       return res.status(404).json({ message: 'Pedido no encontrado' });
     }
+
+    const userId = order.user; // Obtener el ID del usuario asociado al pedido
+
+    // Eliminar el pedido por su ID en la base de datos
+    await Order.findByIdAndDelete(orderId);
+
+    // Eliminar la referencia del pedido en el usuario
+    await User.updateOne({ _id: userId }, { $pull: { orders: orderId } });
 
     // Responder con un mensaje de éxito
     res.status(200).json({ message: 'Pedido eliminado exitosamente' });
@@ -93,9 +101,10 @@ exports.deleteOrderById = async (req, res) => {
 exports.getOrdersByUserId = async (req, res) => {
   try {
     const userId = req.params.userId;
-    const orders = await Order.find({ user: userId }).populate('user', 'username email');
+    const orders = await Order.find({ user: userId, shippingAddress: { $ne: null }, paymentMethod: { $ne: null } })
+      .populate('user', 'username email');
 
-    if (!orders) {
+    if (!orders || orders.length === 0) {
       return res.status(404).json({ message: 'Pedidos no encontrados' });
     }
 
@@ -105,6 +114,7 @@ exports.getOrdersByUserId = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los pedidos' });
   }
 };
+
 
 // Función para eliminar pedidos incompletos de la base de datos
 async function deleteIncompleteOrders() {

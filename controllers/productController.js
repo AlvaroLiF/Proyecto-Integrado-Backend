@@ -71,7 +71,6 @@ exports.searchProducts = async (req, res) => {
     const searchTerm = req.query.searchTerm; // Recupera el término de búsqueda de la URL
     
     // Realiza la búsqueda de productos en la base de datos
-    console.log("hola");
     const results = await Product.find({ name: { $regex: searchTerm, $options: 'i' } });
 
     res.status(200).json(results);
