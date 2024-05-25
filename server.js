@@ -5,6 +5,7 @@ const app = express();
 const db = require("./models");
 const Category = db.category;
 const Role = db.role;
+const http = require('http');
 const port = process.env.PORT || 3000;
 
 require('dotenv').config();
@@ -24,8 +25,25 @@ require('./routes/orderRoutes')(app);
 require('./routes/categoryRoutes')(app);
 require('./routes/cartRoutes')(app);
 
+// Endpoint de salud
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
+// Función para mantener el servidor activo
+function keepServerAwake() {
+  http.get(`http://localhost:${port}/health`, (res) => {
+    console.log(`Health check status: ${res.statusCode}`);
+  }).on('error', (err) => {
+    console.error(`Health check failed: ${err.message}`);
+  });
+}
+
 app.listen(port, () => {
   console.log(`El servidor está escuchando en el puerto ${port}`);
+  // Inicia el cron job para mantener el servidor activo
+  keepServerAwake();
+  setInterval(keepServerAwake, 300000); // 5 minutos
 });
 
 mongoose.connect('mongodb+srv://'+process.env.DB_USER+':'+process.env.DB_PASS+'@componentx.kadp6rr.mongodb.net/?retryWrites=true&w=majority&appName=Componentx')
