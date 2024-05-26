@@ -145,7 +145,7 @@ async function deleteIncompleteOrders() {
   }
 }
 
-setInterval(deleteIncompleteOrders, 60 * 1000); // Ejecutar cada hora
+setInterval(deleteIncompleteOrders, 60 * 60 * 1000); // Ejecutar cada hora
 
 // ...
 
