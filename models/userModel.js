@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, 'Por favor, escriba un nombre de usuario'],
-    uniqueCaseInsensitive: true,
+    unique: true,
     trim: true,
     match: /^\S+$/
   },
@@ -16,23 +16,23 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Por favor, escribe un email'],
     trim: true,
-    uniqueCaseInsensitive: true,
+    unique: true,
     match: /^\S+@\S+$/
   },
   roles: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Role', // Hace referencia al modelo de roles
+      ref: 'Role',
     }
   ],
   cart: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Cart', // Modelo de carrito
+    ref: 'Cart',
   },
   orders: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Order', // Nombre del modelo de pedidos
+      ref: 'Order',
     },
   ],
 

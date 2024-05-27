@@ -1,7 +1,7 @@
 const db = require("../models");
 const User = db.user;
 const Role = db.role;
-const { Cart} = require('../models/cartModel');
+const { Cart } = require('../models/cartModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const config = require("../config/auth-config");
@@ -9,35 +9,54 @@ const config = require("../config/auth-config");
 
 exports.signup = async (req, res) => {
   try {
+    const { username, password, email } = req.body;
 
-    const {username, password, email} = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).send({ message: "Todos los campos son requeridos" });
+    }
+
+    let errorMessage = "";
+
+    // Verificar si el nombre de usuario ya existe
+    const existingUsername = await User.findOne({ username: new RegExp(`^${username}$`, 'i') });
+    if (existingUsername) {
+      errorMessage += "El nombre de usuario ya está en uso. ";
+    }
+
+    // Verificar si el correo electrónico ya existe
+    const existingEmail = await User.findOne({ email: new RegExp(`^${email}$`, 'i') });
+    if (existingEmail) {
+      errorMessage += "El correo electrónico ya está en uso. ";
+    }
+
+    if (errorMessage) {
+      return res.status(400).send({ message: errorMessage.trim() });
+    }
 
     const hashPassword = await bcrypt.hash(password, 8);
-   
-    const token = jwt.sign({ id: User.id }, config.secretKey, {
-      expiresIn: "1y" 
-    });
 
-    const role = req.body.roles ? await Role.findOne({ name: req.body.roles }) : await Role.findOne({ name: 'User' });
+    const role = req.body.roles ? await Role.findOne({ name: req.body.roles.toLowerCase() }) : await Role.findOne({ name: 'User' });
 
     if (!role) {
       return res.status(400).send({ message: "Error, el rol no es válido" });
     }
-   
-    const newUser = new User({
 
+    const newUser = new User({
       username: username,
       email: email,
       password: hashPassword,
-      accessToken: token,
       roles: [role._id]
     });
 
     await newUser.save();
 
+    const token = jwt.sign({ id: newUser._id }, config.secretKey, {
+      expiresIn: "1y"
+    });
+
     res.status(200).send({
-     username : newUser,
-     accessToken: token
+      username: newUser.username,
+      accessToken: token
     });
   } catch (err) {
     res.status(500).send({ message: err.message });
@@ -46,43 +65,49 @@ exports.signup = async (req, res) => {
 
 exports.signin = async (req, res) => {
   try {
+    const { username, email, password } = req.body;
+
+    if (!username && !email) {
+      return res.status(400).send({ message: "Se requiere nombre de usuario o correo electrónico" });
+    }
+
+    if (!password) {
+      return res.status(400).send({ message: "Se requiere contraseña" });
+    }
+
     const user = await User.findOne({
       $or: [
-        { username: req.body.username },
-        { email: req.body.email }
+        { username: username },
+        { email: email }
       ]
     }).populate("roles", "-__v");
 
-    
+    if (!user) {
+      return res.status(404).send({ message: "El nombre de usuario o el correo no son correctos." });
+    }
 
-    const passwordIsValid = bcrypt.compareSync(
-      req.body.password,
-      user.password
-    );
+    const passwordIsValid = bcrypt.compareSync(password, user.password);
 
     if (!passwordIsValid) {
       return res.status(401).send({
         accessToken: null,
-        message: "El Usuario o Contraseña no son correctos."
+        message: "La contraseña no es correcta."
       });
     }
 
     if (!user.cart) {
-      // Si no tiene un carrito, crear uno nuevo
       const newCart = new Cart({
-        user: user._id, // Asigna el usuario al carrito
-        items: [], // Inicialmente, el carrito estará vacío
-        totalPrice: 0, // Inicialmente, el precio total es cero
+        user: user._id,
+        items: [],
+        totalPrice: 0,
       });
 
       await newCart.save();
-      
-      // Asociar el carrito al usuario
       user.cart = newCart._id;
       await user.save();
     }
 
-    const token = jwt.sign({ id: User.id }, config.secretKey, {
+    const token = jwt.sign({ id: user._id }, config.secretKey, {
       expiresIn: "1y"
     });
 
@@ -116,7 +141,7 @@ exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().populate('roles', 'name'); // Poblamos los roles con solo el campo name
     res.status(200).json(users);
-    
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al obtener los usuarios' });
