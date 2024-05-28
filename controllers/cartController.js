@@ -82,7 +82,7 @@ exports.getCart = (req, res) => {
     .exec()
     .then(cart => {
       if (!cart) {
-        return res.status(404).send({ message: 'Carrito no encontrado' });
+        return res.status(404).send({ message: 'Carrito n encontrado' });
       }
       return res.status(200).json(cart);
     })
