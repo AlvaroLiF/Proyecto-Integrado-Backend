@@ -5,6 +5,7 @@ const { Cart } = require('../models/cartModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const config = require("../config/auth-config");
+const { generateResetToken, sendResetPasswordEmail } = require("../middlewares/mailer");
 
 
 exports.signup = async (req, res) => {
@@ -125,18 +126,6 @@ exports.signin = async (req, res) => {
   }
 };
 
-exports.getUsername = async (req, res) => {
-  try {
-    // El nombre de usuario se puede obtener desde los datos del usuario almacenados en la sesión
-    const username = req.user.username;
-    console.log(username);
-    res.status(200).json({ username: username });
-  } catch (error) {
-    console.error('Error al obtener el nombre de usuario:', error);
-    res.status(500).json({ message: 'Error al obtener el nombre de usuario' });
-  }
-};
-
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().populate('roles', 'name'); // Poblamos los roles con solo el campo name
@@ -217,6 +206,150 @@ exports.deleteUser = async (req, res) => {
     res.status(200).json({ message: 'Usuario eliminado exitosamente' });
   } catch (error) {
     res.status(500).json({ message: 'Error al eliminar el usuario', error: error.message });
+  }
+};
+
+exports.viewProfile = async (req, res) => {
+  try {
+    const userId = req.params.userId; // Obtener el ID del pedido de los parámetros de la solicitud
+
+    // Buscar el pedido por su ID en la base de datos
+    const user = await User.findById(userId);
+
+    if (!user) {
+      // Si no se encuentra el pedido, responder con un mensaje de error
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Responder con el pedido encontrado
+    res.status(200).json(user);
+  } catch (error) {
+    // Manejar cualquier error y responder con un mensaje de error
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener el usuario' });
+  }
+};
+
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
+
+    if (!username || !email) {
+      return res.status(400).json({ message: 'Username y email son requeridos' });
+    }
+
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    user.username = username;
+    user.email = email;
+
+    await user.save();
+    res.json({ message: 'Perfil actualizado correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el perfil del usuario', error });
+  }
+};
+
+exports.verifyPassword = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { currentPassword } = req.body;
+
+    if (!currentPassword) {
+      return res.status(400).json({ message: 'La contraseña actual es requerida' });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    const passwordIsValid = bcrypt.compareSync(currentPassword, user.password);
+    if (!passwordIsValid) {
+      return res.status(401).json({ message: 'La contraseña actual es incorrecta' });
+    }
+
+    res.status(200).json({ message: 'Contraseña verificada correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al verificar la contraseña', error: error.message });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const { newPassword, confirmPassword } = req.body;
+
+    if (!newPassword || !confirmPassword) {
+      return res.status(400).json({ message: 'Ambas contraseñas nuevas son requeridas' });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: 'Las contraseñas nuevas no coinciden' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    const user = await User.findById(userId);
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ message: 'Contraseña actualizada correctamente' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar la contraseña', error: error.message });
+  }
+};
+
+exports.sendResetPasswordEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Buscar al usuario por su correo electrónico en la base de datos
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Generar token de restablecimiento de contraseña
+    const resetToken = generateResetToken(user);
+
+    // Enviar correo electrónico con el enlace de restablecimiento de contraseña
+    await sendResetPasswordEmail(email, resetToken);
+
+    res.status(200).json({ message: 'Correo electrónico de restablecimiento de contraseña enviado' });
+  } catch (error) {
+    console.error('Error al enviar el correo electrónico de restablecimiento de contraseña:', error);
+    res.status(500).json({ message: 'Error al enviar el correo electrónico de restablecimiento de contraseña' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    // Verificar si el token es válido
+    const decodedToken = jwt.verify(token, config.secretKey);
+
+    // Buscar al usuario por su ID en la base de datos
+    const user = await User.findById(decodedToken.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    // Actualizar la contraseña del usuario
+    user.password = await bcrypt.hash(newPassword, 8);
+    await user.save();
+
+    res.status(200).json({ message: 'Contraseña restablecida correctamente' });
+  } catch (error) {
+    console.error('Error al restablecer la contraseña:', error);
+    res.status(500).json({ message: 'Error al restablecer la contraseña' });
   }
 };
 

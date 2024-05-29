@@ -1,4 +1,6 @@
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const config = require('../config/auth-config');
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail', // Puedes usar otros servicios como 'Yahoo', 'Outlook', etc.
@@ -11,7 +13,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-const sendOrderConfirmation = (to, orderDetails) => {
+const sendOrderConfirmation = async (to, orderDetails) => {
   const mailOptions = {
     from: 'no-reply@componentx.com',
     to: to,
@@ -37,13 +39,45 @@ const sendOrderConfirmation = (to, orderDetails) => {
     `
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log('Error al enviar el correo:', error);
-    } else {
-      console.log('Correo enviado:', info.response);
-    }
-  });
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Correo electrónico de restablecimiento de contraseña enviado');
+  } catch (error) {
+    console.error('Error al enviar el correo electrónico:', error);
+    throw new Error('Error al enviar el correo electrónico');
+  }
 };
 
-module.exports = { sendOrderConfirmation };
+const sendResetPasswordEmail = async (email, token) => {
+  const resetLink = `https://componentx.netlify.app/reset-password/${token}`; // Asegúrate de cambiar el enlace a la URL de tu frontend
+
+  const mailOptions = {
+    from: 'no-reply@componentx.com',
+    to: email,
+    subject: 'Restablecimiento de contraseña',
+    html: `
+      <h1>Restablecer tu contraseña</h1>
+      <p>Hemos recibido una solicitud para restablecer tu contraseña. Haz clic en el enlace de abajo para restablecer tu contraseña:</p>
+      <a href="${resetLink}">Restablecer Contraseña</a>
+      <p>Si no solicitaste este restablecimiento, por favor ignora este correo electrónico.</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log('Correo electrónico de restablecimiento de contraseña enviado');
+  } catch (error) {
+    console.error('Error al enviar el correo electrónico:', error);
+    throw new Error('Error al enviar el correo electrónico');
+  }
+};
+
+const generateResetToken = (user) => {
+  return jwt.sign({ userId: user._id }, config.secretKey, { expiresIn: '1h' }); // Asegúrate de tener una clave secreta para tokens de restablecimiento en tu archivo de configuración
+};
+
+module.exports = {
+  sendOrderConfirmation, 
+  sendResetPasswordEmail,
+  generateResetToken,
+};

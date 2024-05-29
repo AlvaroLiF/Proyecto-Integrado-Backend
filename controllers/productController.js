@@ -102,6 +102,7 @@ exports.updateProduct = async (req, res) => {
     const productId = req.params.productId;
     const updates = req.body;
 
+    console.log(updates);
     // Buscar y actualizar el producto
     const updatedProduct = await Product.findByIdAndUpdate(productId, updates, { new: true });
 

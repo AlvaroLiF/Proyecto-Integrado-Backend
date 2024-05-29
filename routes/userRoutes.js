@@ -11,10 +11,15 @@ module.exports = function(app) {
 
 app.post('/user/register', UserController.signup);
 app.post('/user/login', UserController.signin);
-app.get('/user/username', UserController.getUsername);
 app.get('/users', UserController.getUsers);
+app.get('/user/profile/:userId', UserController.viewProfile);
+app.put('/user/profile/:userId', UserController.updateUserProfile);
+app.post('/user/profile/verify-password/:userId', UserController.verifyPassword);
+app.put('/user/profile/update-password/:userId', UserController.updatePassword);
+app.post('/user/send-reset-password-email', UserController.sendResetPasswordEmail);
+app.post('/user/reset-password', UserController.resetPassword);
 app.patch('/users/:userId/addAdminRole', UserController.addAdminRole);
 app.patch('/users/:userId/removeAdminRole', UserController.removeAdminRole);
-app.delete('/users/:userId', UserController.deleteUser);
+app.delete('/users/:userId', UserController.deleteUser); 
 
 };
