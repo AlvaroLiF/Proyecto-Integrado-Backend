@@ -12,8 +12,8 @@ db.cart = require("./cartModel");
 db.order = require("./orderModel");
 db.product = require("./productModel");
 db.payment = require("./paymentModel");
-db.shipping = require("./shippingModel");
-db.billing = require("./billingModel");
+db.shipping = require("./ShippingModel");
+db.billing = require("./BillingModel");
 
 db.ROLES = ["user", "admin"];
 db.CATEGORIES = ["Gaming", "Portátiles", "Componentes", "Monitores", "Smartphones", "Televisores", "Hogar"];
