@@ -1,4 +1,4 @@
-const ShippingAddress = require('../models/shippingModel');
+const ShippingAddress = require('../models/ShippingModel');
 const User = require('../models/userModel');
 const Order = require('../models/orderModel');
 
