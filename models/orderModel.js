@@ -55,6 +55,10 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ShippingAddress'
   },
+  billingAddress: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BillingAddress'
+  },
   paymentMethod: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PaymentMethod'

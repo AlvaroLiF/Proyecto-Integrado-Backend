@@ -126,6 +126,76 @@ exports.signin = async (req, res) => {
   }
 };
 
+
+
+exports.signInGoogle = async (req, res) => {
+  const { uid, email, name } = req.body;
+
+  try {
+    let user = await User.findOne({ email }).populate("roles", "-__v");
+
+    if (!user) {
+      // Buscar el rol "User" en la base de datos
+      const userRole = await Role.findOne({ name: 'User' });
+      if (!userRole) {
+        return res.status(500).send({ message: "El rol de usuario no existe." });
+      }
+
+      // Crear un nuevo usuario
+      user = new User({
+        username: name,
+        email: email,
+        password: 'defaultPassword123', // Contraseña por defecto
+        roles: [userRole._id], // Asignar el ObjectId del rol de usuario
+        orders: [], // Inicializar como un array vacío
+      });
+
+      // Generar el _id para el usuario
+      user._id = user._id || new mongoose.Types.ObjectId();
+
+      // Crear un carrito nuevo para el usuario
+      const newCart = new Cart({
+        user: user._id, // Asignar el ID del usuario al carrito
+        items: [], // Inicializar con un array vacío
+        totalPrice: 0, // Inicializar el precio total en 0
+      });
+
+      await newCart.save();
+
+      // Asignar el carrito recién creado al usuario
+      user.cart = newCart._id;
+
+      await user.save();
+
+      // Poblar roles del usuario recién creado
+      user = await User.findOne({ email }).populate("roles", "-__v");
+    } else {
+      // Actualizar la información del usuario si es necesario
+      user.username = name; // Actualizar el nombre de usuario si ha cambiado
+      await user.save();
+    }
+
+    // Generar token de acceso y enviarlo al cliente si lo necesitas
+    const token = jwt.sign({ id: user._id }, config.secretKey, {
+      expiresIn: "1y"
+    });
+
+    const roles = user.roles.map((role) => `ROLE_${role.name.toUpperCase()}`);
+
+    res.send({
+      user: {
+        _id: user._id,
+        username: user.username,
+        roles: roles
+      },
+      token
+    });
+  } catch (error) {
+    console.error('Error en signInGoogle:', error);
+    res.status(500).send({ message: 'Error del servidor' });
+  }
+}
+
 exports.getUsers = async (req, res) => {
   try {
     const users = await User.find().populate('roles', 'name'); // Poblamos los roles con solo el campo name
@@ -353,7 +423,53 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
+exports.getUserShippingAddresses = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).populate('shippingAddresses');
 
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json(user.shippingAddresses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener las direcciones de envío' });
+  }
+};
+
+exports.getUserPaymentMethods = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).populate('paymentMethods');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json(user.paymentMethods);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener los métodos de pago' });
+  }
+};
+
+exports.getUserBillingAddresses = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).populate('billingAddresses');
+
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
+    res.status(200).json(user.billingAddresses);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al obtener las direcciones de facturación' });
+  }
+};
 // Otras funciones para obtener información de usuario, actualizar datos, etc.
 
 // ...

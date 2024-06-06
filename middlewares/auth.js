@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/auth-config'); // Configuración que contiene la clave secreta del JWT
 const User = require('../models/userModel');
+//const admin = require('../firebaseAdmin');
+
 
 exports.verifyToken = (req, res, next) => {
   const token = req.headers['authorization'];
@@ -19,4 +21,20 @@ exports.verifyToken = (req, res, next) => {
     next();
   });
 };
+
+// exports.verifyFirebaseToken = async (req, res, next) => {
+//   const idToken = req.headers.authorization?.split(' ')[1];
+
+//   if (!idToken) {
+//     return res.status(401).send('Unauthorized');
+//   }
+
+//   try {
+//     const decodedToken = await admin.auth().verifyIdToken(idToken);
+//     req.user = decodedToken;
+//     next();
+//   } catch (error) {
+//     res.status(401).send('Unauthorized');
+//   }
+// };
 

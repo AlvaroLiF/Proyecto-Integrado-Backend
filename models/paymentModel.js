@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const paymentMethodSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   cardNumber: {
     type: String,
     required: true,
@@ -17,9 +22,9 @@ const paymentMethodSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  order: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
+  isDefault: {
+    type: Boolean,
+    default: false,
   },
 });
 

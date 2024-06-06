@@ -41,7 +41,7 @@ const sendOrderConfirmation = async (to, orderDetails) => {
 
   try {
     await transporter.sendMail(mailOptions);
-    console.log('Correo electrónico de restablecimiento de contraseña enviado');
+    console.log('Correo electrónico de confirmación de pedido enviado');
   } catch (error) {
     console.error('Error al enviar el correo electrónico:', error);
     throw new Error('Error al enviar el correo electrónico');

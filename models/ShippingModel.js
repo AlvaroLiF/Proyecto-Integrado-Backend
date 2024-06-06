@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const shippingAddressSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   firstName: {
     type: String,
     required: true,
@@ -35,12 +40,12 @@ const shippingAddressSchema = new mongoose.Schema({
     required: true,
   },
   additionalInfo: String,
-  order: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Order',
+  isDefault: {
+    type: Boolean,
+    default: false,
   },
 });
 
-const ShippingAddress = mongoose.model('ShippingAddress', shippingAddressSchema);
+const shippingAddress = mongoose.model('ShippingAddress', shippingAddressSchema);
 
-module.exports = ShippingAddress;
+module.exports = shippingAddress;

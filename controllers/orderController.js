@@ -16,6 +16,7 @@ exports.createOrder = async (req, res) => {
       totalPrice: cart.totalPrice, // Utiliza el precio total del carrito para el pedido
       status: 'pendiente',
       shippingAddress:null,
+      billingAddress:null,
       paymentMethod:null,
     });
 
@@ -124,7 +125,7 @@ async function deleteIncompleteOrders() {
 
     // Buscar pedidos con shippingAddress o paymentMethod nulos y que hayan sido creados hace más de 60 minutos
     const incompleteOrders = await Order.find({
-      $or: [{ shippingAddress: null }, { paymentMethod: null }],
+      $or: [{ shippingAddress: null }, { billingAddress: null }, { paymentMethod: null }],
       createdAt: { $lt: deadline } // createdAt es el campo que indica la fecha de creación del pedido
     });
 
