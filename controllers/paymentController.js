@@ -146,7 +146,6 @@ exports.confirmPaymentAndSendEmail = async (req, res) => {
       orderNumber: order.orderNumber,
       items: orderItems,
       totalPrice: order.totalPrice,
-      paymentMethod: order.paymentMethod.cardholderName,
       status: order.status
     };
 
