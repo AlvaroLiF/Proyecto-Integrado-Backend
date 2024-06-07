@@ -162,3 +162,39 @@ exports.clearCart = async (req, res) => {
     res.status(500).json({ message: 'Error al vaciar el carrito' });
   }
 };
+
+exports.updateCartItemQuantity = async (req, res) => {
+  try {
+    const { userId, productId, quantity } = req.body;
+
+    // Validar que quantity sea un número válido
+    if (!quantity || quantity < 1 || quantity > 10) {
+      return res.status(400).json({ message: 'La cantidad debe ser un número entre 1 y 10' });
+    }
+
+    const cart = await Cart.findOne({ user: userId }).populate('items.product');
+    if (!cart) {
+      return res.status(404).json({ message: 'Carrito no encontrado' });
+    }
+
+    const itemIndex = cart.items.findIndex(item => item.product._id.toString() === productId);
+    if (itemIndex === -1) {
+      return res.status(404).json({ message: 'Producto no encontrado en el carrito' });
+    }
+
+    const item = cart.items[itemIndex];
+    const oldTotalPrice = item.product.price * item.quantity;
+
+    item.quantity = quantity;
+    const newTotalPrice = item.product.price * quantity;
+
+    // Recalcular el precio total
+    cart.totalPrice = Math.round((cart.totalPrice - oldTotalPrice + newTotalPrice) * 100) / 100;
+
+    await cart.save();
+    res.status(200).json(cart);
+  } catch (error) {
+    console.error('Error al actualizar la cantidad del producto en el carrito:', error);
+    res.status(500).json({ message: 'Error al actualizar la cantidad del producto en el carrito', error });
+  }
+};
